@@ -44,6 +44,30 @@ public class MyDbContext : CosmosIdentityDbContext<IdentityUser>
 }
 ```
 
+Later in your development activity you'll likely add some entities to your application. At this point you'll update the DbContext class as you also would when working with a normal entity framework DbContext, adding the `DbSet<T>` properties and overriding the OnModelCreating() method:
+
+```csharp
+public class MyDbContext : CosmosIdentityDbContext<IdentityUser>
+{
+  public DbSet<SampleEntity> SampleEntities { get; set; }
+
+  public DbSet<OtherSampleEntity> OtherSampleEntities { get; set; }
+
+  public MyDbContext(DbContextOptions dbContextOptions, IOptions<OperationalStoreOptions> options)
+    : base(dbContextOptions, options) { }
+
+  protected override void OnModelCreating(ModelBuilder builder)
+  {
+    // DO NOT REMOVE THIS LINE. If you do, your context won't work as expected.
+    base.OnModelCreating(builder);
+    
+    // TODO: Add your own fluent mappings
+  }
+}
+```
+
+As specified in a comment in the code above, when overriding the `OnModelCreating()` method it is **crucial** to not remove the `base.OnModelCreating(builder)` call, otherwise the identity configuration mappings won't be applied and the application won't work properly.
+
 ## Startup.cs File Configuration
 Remove the line where the current identity provider is added/configured.
 
@@ -98,13 +122,13 @@ public class MyClass {
 ## Available IRepository methods
 Just for your information, here is a summary of the available methods in the IRepository interface:
 
-- ```Table<TEntity>()```
-- ```GetById<TEntity>(string id)```
-- ```TryFindOne<TEntity>(Expression<Func<TEntity, bool>> predicate)```
-- ```Find<TEntity>(Expression<Func<TEntity, bool>> predicate)```
-- ```Add<TEntity>(TEntity entity)```
-- ```Update<TEntity>(TEntity entity)```
-- ```DeleteById<TEntity>(string id)```
-- ```Delete<TEntity>(TEntity entity)```
-- ```Delete<TEntity>(Expression<Func<TEntity, bool>> predicate)```
-- ```SaveChangesAsync()```
+- `Table<TEntity>()`
+- `GetById<TEntity>(string id)`
+- `TryFindOne<TEntity>(Expression<Func<TEntity, bool>> predicate)`
+- `Find<TEntity>(Expression<Func<TEntity, bool>> predicate)`
+- `Add<TEntity>(TEntity entity)`
+- `Update<TEntity>(TEntity entity)`
+- `DeleteById<TEntity>(string id)`
+- `Delete<TEntity>(TEntity entity)`
+- `Delete<TEntity>(Expression<Func<TEntity, bool>> predicate)`
+- `SaveChangesAsync()`
