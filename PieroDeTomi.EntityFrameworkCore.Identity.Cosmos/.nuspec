@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>PieroDeTomi.EntityFrameworkCore.Identity.Cosmos</id>
+    <title>PieroDeTomi.EntityFrameworkCore.Identity.Cosmos</title>
+    <version>1.0.0</version>
+    <authors>Piero De Tomi</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <icon>_res/icons/nuget-icon.png</icon>
+    <projectUrl>https://github.com/pierodetomi/efcore-identity-cosmos</projectUrl>
+    <description>This is a CosmosDb implementation of an Identity provider for .NET Core 5. You can use this package to easily bootstrap an ASP.NET Identity Server backed by a CosmosDb database and EF Core, in place of SQL Server.</description>
+    <summary>A CosmosDb implementation of an Identity provider for .NET Core 5.</summary>
+    <tags>aspnet, efcore, cosmos, cosmosdb, identity, provider</tags>
+    <repository type="GitHub" url="https://github.com/pierodetomi/efcore-identity-cosmos" />
+    <dependencies>
+      <group targetFramework="net5.0">
+        <dependency id="Microsoft.AspNetCore.ApiAuthorization.IdentityServer" version="5.0.3" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.EntityFrameworkCore" version="5.0.3" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.EntityFrameworkCore.Cosmos" version="5.0.3" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Identity.Core" version="5.0.3" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+    <frameworkReferences>
+      <group targetFramework="net5.0">
+        <frameworkReference name="Microsoft.AspNetCore.App" />
+      </group>
+    </frameworkReferences>
+  </metadata>
+</package>
