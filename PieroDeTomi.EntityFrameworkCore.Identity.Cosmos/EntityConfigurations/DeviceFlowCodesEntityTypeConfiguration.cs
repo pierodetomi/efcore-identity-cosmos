@@ -16,6 +16,9 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.EntityConfigurations
         public void Configure(EntityTypeBuilder<DeviceFlowCodes> builder)
         {
             builder
+                .HasKey(_ => new { _.ClientId, _.SessionId, _.DeviceCode });
+
+            builder
                 .UseETagConcurrency()
                 .HasPartitionKey(_ => _.SessionId);
 
