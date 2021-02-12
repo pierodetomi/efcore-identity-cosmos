@@ -32,9 +32,9 @@ Since migrations are **NOT** supported when using EF Core on Cosmos DB, you'll h
 | Identity_UserRoles | /UserId |
 
 ## DbContext
-You have to create a DbContext (e.g.: the DbContext you'll use in your application) that implements the ```CosmosIdentityDbContext``` type.
+You have to create a DbContext that implements the provided `CosmosIdentityDbContext` type.
 
-If you just want to start with authentication and add the other entities later, you just need to create an empty DbContext class that satisfies the above requirement:
+To start off you can create just an empty DbContext class that satisfies the above requirement:
 
 ```csharp
 public class MyDbContext : CosmosIdentityDbContext<IdentityUser>
@@ -44,7 +44,7 @@ public class MyDbContext : CosmosIdentityDbContext<IdentityUser>
 }
 ```
 
-Later in your development activity you'll likely add some entities to your application. At this point you'll update the DbContext class as you also would when working with a normal entity framework DbContext, adding the `DbSet<T>` properties and overriding the OnModelCreating() method:
+Later in your development activity you'll likely add some entities to your application. At this point you'll update the DbContext class as you normally would when working with a normal entity framework DbContext, adding the `DbSet<T>` properties and overriding the OnModelCreating() method for entity mappings:
 
 ```csharp
 public class MyDbContext : CosmosIdentityDbContext<IdentityUser>
@@ -66,10 +66,12 @@ public class MyDbContext : CosmosIdentityDbContext<IdentityUser>
 }
 ```
 
-As specified in a comment in the code above, when overriding the `OnModelCreating()` method it is **crucial** to not remove the `base.OnModelCreating(builder)` call, otherwise the identity configuration mappings won't be applied and the application won't work properly.
+As specified in the above code snippet, when overriding the `OnModelCreating()` method it is **crucial** to not remove the `base.OnModelCreating(builder)` call, otherwise the identity configuration mappings won't be applied and the application won't work properly.
 
-## Startup.cs File Configuration
-Remove the line where the current identity provider is added/configured.
+## Configurations in Startup.cs file
+
+## Remove default/current Identity
+Remove the line where the default/current identity provider is added/configured.
 
 If you just created a new project, this line should be something like:
 
@@ -78,6 +80,15 @@ services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfi
   .AddEntityFrameworkStores<ApplicationDbContext>();
 ```
 
+## Remove default/current DbContext configuration
+Remove the line where the SQL DbContext is configured. It should be something like:
+
+```csharp
+services.AddDbContext<ApplicationDbContext>(options =>
+  options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+```
+
+## Add Cosmos DB Identity
 Now add the Cosmos DB provider:
 
 ```csharp
@@ -95,12 +106,18 @@ services.AddCosmosIdentity<MyDbContext, IdentityUser, IdentityRole>(
 );
 ```
 
+## [SPA] Update IdentityServer configuration
 If your project is using a SPA Web Application template (e.g.: the Angular web app), update the **Identity Server** configuration, in order to use your new DbContext implementation:
 
 ```csharp
 // Note that we're using MyDbContext as the second type parameter here...
 services.AddIdentityServer().AddApiAuthorization<IdentityUser, MyDbContext>();
 ```
+
+# This provider & Identity UI
+Please note that if your application is using the default Identity UI (e.g.: in `Startup.cs` there's a call to `AddDefaultUI()` method), it will **NOT** work correctly with this provider, since the default Identity UI required email support in the user store and this provider does not offer it.
+
+However if you want you can use the [scaffolded](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/scaffold-identity?view=aspnetcore-5.0&tabs=visual-studio) version of Identity UI, this should work out of the box without having to touch anything else.
 
 # Available Services
 This library registers in the service collection a basic Cosmos DB repository implementation, that you can resolve in your constructors requiring the `IRepository` interface.
