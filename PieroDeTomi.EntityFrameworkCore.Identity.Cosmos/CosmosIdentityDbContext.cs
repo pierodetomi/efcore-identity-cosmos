@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.EntityConfigurations;
+using PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Extensions;
 
 namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos
 {
@@ -16,16 +16,7 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-
-            builder.ApplyConfiguration(new UserEntityTypeConfiguration<TUserEntity> { });
-            builder.ApplyConfiguration(new UserRoleEntityTypeConfiguration { });
-            builder.ApplyConfiguration(new RoleEntityTypeConfiguration { });
-            builder.ApplyConfiguration(new RoleClaimEntityTypeConfiguration { });
-            builder.ApplyConfiguration(new UserClaimEntityTypeConfiguration { });
-            builder.ApplyConfiguration(new UserLoginEntityTypeConfiguration { });
-            builder.ApplyConfiguration(new UserTokensEntityTypeConfiguration { });
-            builder.ApplyConfiguration(new DeviceFlowCodesEntityTypeConfiguration { });
-            builder.ApplyConfiguration(new PersistedGrantEntityTypeConfiguration { });
+            builder.ApplyIdentityMappings<TUserEntity>();
         }
     }
 }
