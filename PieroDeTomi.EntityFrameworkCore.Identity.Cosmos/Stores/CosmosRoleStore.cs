@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
 {
-    public class CosmosRoleStore<TRoleEntity> : IRoleStore<TRoleEntity> where TRoleEntity : IdentityRole
+    class CosmosRoleStore<TRoleEntity> : IRoleStore<TRoleEntity> where TRoleEntity : IdentityRole
     {
         public Task<IdentityResult> CreateAsync(TRoleEntity role, CancellationToken cancellationToken)
         {
