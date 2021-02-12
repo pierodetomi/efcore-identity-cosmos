@@ -47,9 +47,7 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Repositories
         public void Update<TEntity>(TEntity entity) where TEntity : class, new()
         {
             var dbEntry = _db.Entry(entity);
-            // _db.Attach(dbEntry);
             dbEntry.State = EntityState.Modified;
-            // _db.Update(entity);
         }
 
         public void DeleteById<TEntity>(string id) where TEntity : class, new()
