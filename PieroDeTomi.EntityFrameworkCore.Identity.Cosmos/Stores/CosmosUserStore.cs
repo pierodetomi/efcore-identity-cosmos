@@ -7,7 +7,11 @@ using System.Threading.Tasks;
 
 namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
 {
-    class CosmosUserStore<TUserEntity> : IUserStore<TUserEntity>, IUserEmailStore<TUserEntity>, IUserPasswordStore<TUserEntity> where TUserEntity : IdentityUser, new()
+    class CosmosUserStore<TUserEntity> :
+        IUserStore<TUserEntity>,
+        IUserEmailStore<TUserEntity>,
+        IUserPasswordStore<TUserEntity>,
+        IUserPhoneNumberStore<TUserEntity> where TUserEntity : IdentityUser, new()
     {
         private readonly IRepository _repo;
 
@@ -99,74 +103,112 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
             return await _repo.Table<TUserEntity>().SingleOrDefaultAsync(_ => _.NormalizedUserName == userName);
         }
 
-        public async Task<string> GetEmailAsync(TUserEntity user, CancellationToken cancellationToken)
+        public Task<string> GetEmailAsync(TUserEntity user, CancellationToken cancellationToken)
         {
-            return GetUserProperty(user, user => user.Email, cancellationToken);
+            return Task.FromResult(
+                GetUserProperty(user, user => user.Email, cancellationToken));
         }
 
-        public async Task<bool> GetEmailConfirmedAsync(TUserEntity user, CancellationToken cancellationToken)
+        public Task<bool> GetEmailConfirmedAsync(TUserEntity user, CancellationToken cancellationToken)
         {
-            return GetUserProperty(user, user => user.EmailConfirmed, cancellationToken);
+            return Task.FromResult(
+                GetUserProperty(user, user => user.EmailConfirmed, cancellationToken));
         }
 
-        public async Task<string> GetNormalizedEmailAsync(TUserEntity user, CancellationToken cancellationToken)
+        public Task<string> GetNormalizedEmailAsync(TUserEntity user, CancellationToken cancellationToken)
         {
-            return GetUserProperty(user, user => user.NormalizedEmail, cancellationToken);
+            return Task.FromResult(
+                GetUserProperty(user, user => user.NormalizedEmail, cancellationToken));
         }
 
-        public async Task<string> GetNormalizedUserNameAsync(TUserEntity user, CancellationToken cancellationToken)
+        public Task<string> GetNormalizedUserNameAsync(TUserEntity user, CancellationToken cancellationToken)
         {
-            return GetUserProperty(user, user => user.NormalizedUserName, cancellationToken);
+            return Task.FromResult(
+                GetUserProperty(user, user => user.NormalizedUserName, cancellationToken));
         }
 
-        public async Task<string> GetPasswordHashAsync(TUserEntity user, CancellationToken cancellationToken)
+        public Task<string> GetPasswordHashAsync(TUserEntity user, CancellationToken cancellationToken)
         {
-            return GetUserProperty(user, user => user.PasswordHash, cancellationToken);
+            return Task.FromResult(
+                GetUserProperty(user, user => user.PasswordHash, cancellationToken));
         }
 
-        public async Task<string> GetUserIdAsync(TUserEntity user, CancellationToken cancellationToken)
+        public Task<string> GetPhoneNumberAsync(TUserEntity user, CancellationToken cancellationToken)
         {
-            return GetUserProperty(user, user => user.Id.ToString(), cancellationToken);
+            return Task.FromResult(
+                GetUserProperty(user, user => user.PhoneNumber, cancellationToken));
         }
 
-        public async Task<string> GetUserNameAsync(TUserEntity user, CancellationToken cancellationToken)
+        public Task<bool> GetPhoneNumberConfirmedAsync(TUserEntity user, CancellationToken cancellationToken)
         {
-            return GetUserProperty(user, user => user.UserName, cancellationToken);
+            return Task.FromResult(
+                GetUserProperty(user, user => user.PhoneNumberConfirmed, cancellationToken));
         }
 
-        public async Task<bool> HasPasswordAsync(TUserEntity user, CancellationToken cancellationToken)
+        public Task<string> GetUserIdAsync(TUserEntity user, CancellationToken cancellationToken)
         {
-            return GetUserProperty(user, user => !string.IsNullOrEmpty(user.PasswordHash), cancellationToken);
+            return Task.FromResult(
+                 GetUserProperty(user, user => user.Id.ToString(), cancellationToken));
         }
 
-        public async Task SetEmailAsync(TUserEntity user, string email, CancellationToken cancellationToken)
+        public Task<string> GetUserNameAsync(TUserEntity user, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(
+                GetUserProperty(user, user => user.UserName, cancellationToken));
+        }
+
+        public Task<bool> HasPasswordAsync(TUserEntity user, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(
+                GetUserProperty(user, user => !string.IsNullOrEmpty(user.PasswordHash), cancellationToken));
+        }
+
+        public Task SetEmailAsync(TUserEntity user, string email, CancellationToken cancellationToken)
         {
             SetUserProperty(user, email, (u, m) => u.Email = email, cancellationToken);
+            return Task.CompletedTask;
         }
 
-        public async Task SetEmailConfirmedAsync(TUserEntity user, bool confirmed, CancellationToken cancellationToken)
+        public Task SetEmailConfirmedAsync(TUserEntity user, bool confirmed, CancellationToken cancellationToken)
         {
             SetUserProperty(user, confirmed, (u, m) => u.EmailConfirmed = confirmed, cancellationToken);
+            return Task.CompletedTask;
         }
 
-        public async Task SetNormalizedEmailAsync(TUserEntity user, string normalizedEmail, CancellationToken cancellationToken)
+        public Task SetNormalizedEmailAsync(TUserEntity user, string normalizedEmail, CancellationToken cancellationToken)
         {
             SetUserProperty(user, normalizedEmail, (u, m) => u.NormalizedEmail = normalizedEmail, cancellationToken);
+            return Task.CompletedTask;
         }
 
-        public async Task SetNormalizedUserNameAsync(TUserEntity user, string normalizedName, CancellationToken cancellationToken)
+        public Task SetNormalizedUserNameAsync(TUserEntity user, string normalizedName, CancellationToken cancellationToken)
         {
             SetUserProperty(user, normalizedName, (u, m) => u.NormalizedUserName = normalizedName, cancellationToken);
+            return Task.CompletedTask;
         }
 
-        public async Task SetPasswordHashAsync(TUserEntity user, string passwordHash, CancellationToken cancellationToken)
+        public Task SetPasswordHashAsync(TUserEntity user, string passwordHash, CancellationToken cancellationToken)
         {
             SetUserProperty(user, passwordHash, (u, m) => u.PasswordHash = passwordHash, cancellationToken);
+            return Task.CompletedTask;
         }
 
-        public async Task SetUserNameAsync(TUserEntity user, string userName, CancellationToken cancellationToken)
+        public Task SetPhoneNumberAsync(TUserEntity user, string phoneNumber, CancellationToken cancellationToken)
+        {
+            SetUserProperty(user, phoneNumber, (u, v) => user.PhoneNumber = v, cancellationToken);
+            return Task.CompletedTask;
+        }
+
+        public Task SetPhoneNumberConfirmedAsync(TUserEntity user, bool confirmed, CancellationToken cancellationToken)
+        {
+            SetUserProperty(user, confirmed, (u, v) => user.PhoneNumberConfirmed = v, cancellationToken);
+            return Task.CompletedTask;
+        }
+
+        public Task SetUserNameAsync(TUserEntity user, string userName, CancellationToken cancellationToken)
         {
             SetUserProperty(user, userName, (u, m) => u.UserName = userName, cancellationToken);
+            return Task.CompletedTask;
         }
 
         public async Task<IdentityResult> UpdateAsync(TUserEntity user, CancellationToken cancellationToken)
