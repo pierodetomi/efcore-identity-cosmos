@@ -14,13 +14,14 @@ PM> Install-Package PieroDeTomi.EntityFrameworkCore.Identity.Cosmos
 # Integration Steps
 
 ## Project Requirements
-The following steps assume that you have an ASP.NET Core 5 Web Application (or SPA Web Application) project with _authentication_ + _individual accounts_ feature turned on.
+The following steps assume that you have an ASP.NET Core 5 Web Application project that uses Identity and/or IdentityServer features.
 
 ## Cosmos DB Requirements
 ### Database
 Just as with EF Core on SQL Server, you have to manually create a database in your Cosmos DB instance to be able to operate.
+
 ### Containers
-Since migrations are **NOT** supported when using EF Core on Cosmos DB, you'll have to _manually_ create the following containers:
+Since **migrations are NOT supported when using EF Core on Cosmos DB**, you’ll have to manually create the following containers in your database:
 
 | Container Name | Partition Key |
 | --- | --- |
@@ -36,6 +37,7 @@ You have to create a DbContext that implements the provided `CosmosIdentityDbCon
 
 To start off you can create just an empty DbContext class that satisfies the above requirement:
 
+
 ```csharp
 public class MyDbContext : CosmosIdentityDbContext<IdentityUser>
 {
@@ -44,7 +46,8 @@ public class MyDbContext : CosmosIdentityDbContext<IdentityUser>
 }
 ```
 
-Later in your development activity you'll likely add some entities to your application. At this point you'll update the DbContext class as you normally would when working with a normal entity framework DbContext, adding the `DbSet<T>` properties and overriding the OnModelCreating() method for entity mappings:
+Later in your development you'll likely add some entities to your application: you'll update the DbContext class adding the `DbSet<T>` properties and overriding the `OnModelCreating()` method for entity mappings:
+
 
 ```csharp
 public class MyDbContext : CosmosIdentityDbContext<IdentityUser>
@@ -66,11 +69,11 @@ public class MyDbContext : CosmosIdentityDbContext<IdentityUser>
 }
 ```
 
-As specified in the above code snippet, when overriding the `OnModelCreating()` method it is **crucial** to not remove the `base.OnModelCreating(builder)` call, otherwise the identity configuration mappings won't be applied and the application won't work properly.
+As specified in the above code snippet, when overriding the `OnModelCreating()` method it is **crucial** to not remove the `base.OnModelCreating(builder)` call: if you do so, the identity configuration mappings won't be applied and the application won't work properly.
 
-## Configurations in Startup.cs file
+## Configurations in Startup.cs File
 
-## Remove default/current Identity
+## Remove the Default Identity Provider
 Remove the line where the default/current identity provider is added/configured.
 
 If you just created a new project, this line should be something like:
@@ -80,15 +83,17 @@ services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfi
   .AddEntityFrameworkStores<ApplicationDbContext>();
 ```
 
-## Remove default/current DbContext configuration
-Remove the line where the SQL DbContext is configured. It should be something like:
+## Remove Default DbContext Configuration
+Remove the line where the SQL DbContext is configured.
+
+It should be something like:
 
 ```csharp
 services.AddDbContext<ApplicationDbContext>(options =>
   options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 ```
 
-## Add Cosmos DB Identity
+## Add Cosmos DB Identity Provider
 Now add the Cosmos DB provider:
 
 ```csharp
@@ -106,18 +111,20 @@ services.AddCosmosIdentity<MyDbContext, IdentityUser, IdentityRole>(
 );
 ```
 
-## [SPA] Update IdentityServer configuration
-If your project is using a SPA Web Application template (e.g.: the Angular web app), update the **Identity Server** configuration, in order to use your new DbContext implementation:
+## Update IdentityServer Configuration (If Applicable)
+If your project is using **IdentityServer**, update the related configuration in order to use your new DbContext implementation:
 
 ```csharp
 // Note that we're using MyDbContext as the second type parameter here...
 services.AddIdentityServer().AddApiAuthorization<IdentityUser, MyDbContext>();
 ```
 
-# This provider & Identity UI
-Please note that if your application is using the default Identity UI (e.g.: in `Startup.cs` there's a call to `AddDefaultUI()` method), it will **NOT** work correctly with this provider, since the default Identity UI required email support in the user store and this provider does not offer it.
+# This Provider & Identity UI
+This provider is also **compatible** with Identity UI.
 
-However if you want you can use the [scaffolded](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/scaffold-identity?view=aspnetcore-5.0&tabs=visual-studio) version of Identity UI, this should work out of the box without having to touch anything else.
+You can either use the default Identity UI (e.g.: in `Startup.cs` there's a call to `AddDefaultUI()` method) or use the [scaffolded](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/scaffold-identity?view=aspnetcore-5.0&tabs=visual-studio) version of Identity UI. Both scenarios should work out of the box without having to do anything else.
+
+Finally you can also use your own implementation of Identity UI, as long as you use the Identity services (e.g.: `UserManager` and `SignInManager`).
 
 # Available Services
 This library registers in the service collection a basic Cosmos DB repository implementation, that you can resolve in your constructors requiring the `IRepository` interface.
@@ -149,3 +156,14 @@ Just for your information, here is a summary of the available methods in the IRe
 - `Delete<TEntity>(TEntity entity)`
 - `Delete<TEntity>(Expression<Func<TEntity, bool>> predicate)`
 - `SaveChangesAsync()`
+
+# Changelog
+
+## v1.0.6
+- Introduced support for `IUserLoginStore<TUser>` in User Store
+
+## v1.0.5
+- Introduced support for `IUserPhoneNumberStore<TUser>` in User Store
+
+## v1.0.4
+- Introduced support for `IUserEmailStore<TUser>` in User Store

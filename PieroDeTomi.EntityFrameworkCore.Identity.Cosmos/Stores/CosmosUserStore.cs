@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Contracts;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,7 +13,8 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
         IUserStore<TUserEntity>,
         IUserEmailStore<TUserEntity>,
         IUserPasswordStore<TUserEntity>,
-        IUserPhoneNumberStore<TUserEntity> where TUserEntity : IdentityUser, new()
+        IUserPhoneNumberStore<TUserEntity>,
+        IUserLoginStore<TUserEntity> where TUserEntity : IdentityUser, new()
     {
         private readonly IRepository _repo;
 
@@ -19,8 +22,6 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
         {
             _repo = repo;
         }
-
-        #region createuser
 
         public async Task<IdentityResult> CreateAsync(TUserEntity user, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -42,8 +43,6 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
             return IdentityResult.Success;
         }
 
-        #endregion
-
         public async Task<IdentityResult> DeleteAsync(TUserEntity user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -63,8 +62,6 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
 
             return IdentityResult.Success;
         }
-
-        public void Dispose() { }
 
         public async Task<TUserEntity> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
         {
@@ -245,5 +242,91 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
 
             setter(user, value);
         }
+
+        public async Task AddLoginAsync(TUserEntity user, UserLoginInfo login, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (user == null) throw new ArgumentNullException(nameof(user));
+            if (login == null) throw new ArgumentNullException(nameof(login));
+
+            try
+            {
+                IdentityUserLogin<string> loginEntity = new IdentityUserLogin<string>
+                {
+                    UserId = user.Id,
+                    LoginProvider = login.LoginProvider,
+                    ProviderKey = login.ProviderKey,
+                    ProviderDisplayName = login.ProviderDisplayName
+                };
+
+                _repo.Add(loginEntity);
+                await _repo.SaveChangesAsync();
+            }
+            catch { }
+        }
+
+        public async Task RemoveLoginAsync(TUserEntity user, string loginProvider, string providerKey, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (user == null) throw new ArgumentNullException(nameof(user));
+            if (loginProvider == null) throw new ArgumentNullException(nameof(loginProvider));
+            if (providerKey == null) throw new ArgumentNullException(nameof(providerKey));
+
+            try
+            {
+                var login = await _repo.Table<IdentityUserLogin<string>>()
+                    .SingleOrDefaultAsync(l =>
+                        l.UserId == user.Id &&
+                        l.LoginProvider == loginProvider &&
+                        l.ProviderKey == providerKey
+                    );
+
+                if (login != null)
+                {
+                    _repo.Delete(login);
+                    await _repo.SaveChangesAsync();
+                }
+            }
+            catch { }
+        }
+
+        public Task<IList<UserLoginInfo>> GetLoginsAsync(TUserEntity user, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (user == null)
+                throw new ArgumentNullException(nameof(user));
+
+            IList<UserLoginInfo> res = _repo
+                .Table<IdentityUserLogin<string>>()
+                .Where(l => l.UserId == user.Id)
+                .Select(l => new UserLoginInfo(l.LoginProvider, l.ProviderKey, user.UserName)
+                {
+                    ProviderDisplayName = l.ProviderDisplayName
+                })
+                .ToList();
+
+            return Task.FromResult(res);
+        }
+
+        public async Task<TUserEntity> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (loginProvider == null) throw new ArgumentNullException(nameof(loginProvider));
+            if (providerKey == null) throw new ArgumentNullException(nameof(providerKey));
+
+            var userId = (
+                await _repo.Table<IdentityUserLogin<string>>().SingleOrDefaultAsync(l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey)
+            )?.UserId;
+
+            return string.IsNullOrEmpty(userId)
+                ? default(TUserEntity)
+                : await FindByIdAsync(userId, cancellationToken);
+        }
+
+        public void Dispose() { }
     }
 }
