@@ -16,9 +16,24 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
             _repo = repo;
         }
 
-        public Task<IdentityResult> CreateAsync(TRoleEntity role, CancellationToken cancellationToken)
+        public async Task<IdentityResult> CreateAsync(TRoleEntity role, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+                throw new ArgumentNullException(nameof(role));
+
+            try
+            {
+                _repo.Add(role);
+                await _repo.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+            }
+
+            return IdentityResult.Success;
         }
 
         public Task<IdentityResult> DeleteAsync(TRoleEntity role, CancellationToken cancellationToken)
