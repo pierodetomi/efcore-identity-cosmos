@@ -8,7 +8,7 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.EntityConfigurations
     {
         private readonly string _tableName;
 
-        public RoleEntityTypeConfiguration(string tableName = "Identity")
+        public RoleEntityTypeConfiguration(string tableName = "Identity_Roles")
         {
             _tableName = tableName;
         }
