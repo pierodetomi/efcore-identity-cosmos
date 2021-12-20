@@ -1,15 +1,39 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Contracts;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
 {
-    class CosmosRoleStore<TRoleEntity> : IRoleStore<TRoleEntity> where TRoleEntity : IdentityRole
+    internal class CosmosRoleStore<TRoleEntity> : IRoleStore<TRoleEntity> where TRoleEntity : IdentityRole, new()
     {
-        public Task<IdentityResult> CreateAsync(TRoleEntity role, CancellationToken cancellationToken)
+        private readonly IRepository _repo;
+
+        public CosmosRoleStore(IRepository repo)
         {
-            throw new NotImplementedException();
+            _repo = repo;
+        }
+
+        public async Task<IdentityResult> CreateAsync(TRoleEntity role, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+                throw new ArgumentNullException(nameof(role));
+
+            try
+            {
+                _repo.Add(role);
+                await _repo.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+            }
+
+            return IdentityResult.Success;
         }
 
         public Task<IdentityResult> DeleteAsync(TRoleEntity role, CancellationToken cancellationToken)
@@ -17,14 +41,30 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
             throw new NotImplementedException();
         }
 
-        public Task<TRoleEntity> FindByIdAsync(string roleId, CancellationToken cancellationToken)
+        public async Task<TRoleEntity> FindByIdAsync(string roleId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (string.IsNullOrEmpty(roleId) || string.IsNullOrWhiteSpace(roleId))
+                throw new ArgumentNullException(nameof(roleId));
+
+            var role = await _repo.Table<TRoleEntity>()
+                .SingleOrDefaultAsync(_ => _.Id == roleId, cancellationToken: cancellationToken);
+
+            return role;
         }
 
-        public Task<TRoleEntity> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
+        public async Task<TRoleEntity> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (string.IsNullOrEmpty(normalizedRoleName) || string.IsNullOrWhiteSpace(normalizedRoleName))
+                throw new ArgumentNullException(nameof(normalizedRoleName));
+
+            var role = await _repo.Table<TRoleEntity>()
+                .SingleOrDefaultAsync(_ => _.NormalizedName == normalizedRoleName, cancellationToken: cancellationToken);
+
+            return role;
         }
 
         public Task<string> GetNormalizedRoleNameAsync(TRoleEntity role, CancellationToken cancellationToken)
