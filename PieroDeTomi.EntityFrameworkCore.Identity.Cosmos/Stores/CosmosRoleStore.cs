@@ -36,9 +36,26 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
             return IdentityResult.Success;
         }
 
-        public Task<IdentityResult> DeleteAsync(TRoleEntity role, CancellationToken cancellationToken)
+        public async Task<IdentityResult> DeleteAsync(TRoleEntity role, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            try
+            {
+                _repo.Delete(role);
+                await _repo.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+            }
+
+            return IdentityResult.Success;
         }
 
         public async Task<TRoleEntity> FindByIdAsync(string roleId, CancellationToken cancellationToken)
@@ -131,9 +148,28 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
             return Task.CompletedTask;
         }
 
-        public Task<IdentityResult> UpdateAsync(TRoleEntity role, CancellationToken cancellationToken)
+        public async Task<IdentityResult> UpdateAsync(TRoleEntity role, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            role.ConcurrencyStamp = Guid.NewGuid().ToString();
+
+            try
+            {
+                _repo.Update(role);
+                await _repo.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+            }
+
+            return IdentityResult.Success;
         }
 
         public void Dispose()
