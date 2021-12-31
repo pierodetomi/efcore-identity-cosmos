@@ -69,7 +69,14 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
 
         public Task<string> GetNormalizedRoleNameAsync(TRoleEntity role, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            return Task.FromResult(role.NormalizedName);
         }
 
         public Task<string> GetRoleIdAsync(TRoleEntity role, CancellationToken cancellationToken)
@@ -98,12 +105,30 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
 
         public Task SetNormalizedRoleNameAsync(TRoleEntity role, string normalizedName, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            role.NormalizedName = normalizedName;
+
+            return Task.CompletedTask;
         }
 
         public Task SetRoleNameAsync(TRoleEntity role, string roleName, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            role.Name = roleName;
+
+            return Task.CompletedTask;
         }
 
         public Task<IdentityResult> UpdateAsync(TRoleEntity role, CancellationToken cancellationToken)
