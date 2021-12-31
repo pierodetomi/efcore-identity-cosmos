@@ -74,12 +74,26 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
 
         public Task<string> GetRoleIdAsync(TRoleEntity role, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            return Task.FromResult(role.Id);
         }
 
         public Task<string> GetRoleNameAsync(TRoleEntity role, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            return Task.FromResult(role.Name);
         }
 
         public Task SetNormalizedRoleNameAsync(TRoleEntity role, string normalizedName, CancellationToken cancellationToken)
