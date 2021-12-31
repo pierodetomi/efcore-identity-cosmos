@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 
 namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
 {
-    class CosmosUserStore<TUserEntity> :
+    internal class CosmosUserStore<TUserEntity> :
         IUserStore<TUserEntity>,
+        IUserRoleStore<TUserEntity>,
         IUserEmailStore<TUserEntity>,
         IUserPasswordStore<TUserEntity>,
         IUserPhoneNumberStore<TUserEntity>,
@@ -327,6 +328,115 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
                 : await FindByIdAsync(userId, cancellationToken);
         }
 
-        public void Dispose() { }
+        public async Task AddToRoleAsync(TUserEntity user, string roleName, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (user == null) throw new ArgumentNullException(nameof(user));
+            if (string.IsNullOrWhiteSpace(roleName)) throw new ArgumentNullException(nameof(roleName));
+
+            var role = await _repo.Table<IdentityRole>()
+                .SingleOrDefaultAsync(_ => _.NormalizedName == roleName, cancellationToken: cancellationToken);
+
+            if (role == null) throw new InvalidOperationException("Role not found.");
+
+            try
+            {
+                IdentityUserRole<string> userRole = new IdentityUserRole<string>
+                {
+                    RoleId = role.Id,
+                    UserId = user.Id
+                };
+
+                _repo.Add(userRole);
+                await _repo.SaveChangesAsync();
+            }
+            catch { }
+        }
+
+        public async Task RemoveFromRoleAsync(TUserEntity user, string roleName, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (user == null) throw new ArgumentNullException(nameof(user));
+            if (string.IsNullOrWhiteSpace(roleName)) throw new ArgumentNullException(nameof(roleName));
+
+            var role = await _repo.Table<IdentityRole>()
+                .SingleOrDefaultAsync(_ => _.NormalizedName == roleName, cancellationToken: cancellationToken);
+
+            if (role != null)
+            {
+                var userRole = await _repo.Table<IdentityUserRole<string>>().SingleOrDefaultAsync(_ => _.RoleId == role.Id, cancellationToken);
+                if (userRole != null)
+                {
+                    _repo.Delete(userRole);
+                    await _repo.SaveChangesAsync();
+                }
+            }
+        }
+
+        public async Task<IList<string>> GetRolesAsync(TUserEntity user, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (user == null)
+                throw new ArgumentNullException(nameof(user));
+
+            IList<string> res = await _repo
+                .Table<IdentityUserRole<string>>()
+                .Where(m => m.UserId == user.Id)
+                .Select(m => m.RoleId)
+                .ToListAsync(cancellationToken);
+
+            return res;
+        }
+
+        public async Task<bool> IsInRoleAsync(TUserEntity user, string roleName, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (user == null) throw new ArgumentNullException(nameof(user));
+            if (string.IsNullOrWhiteSpace(roleName)) throw new ArgumentNullException(nameof(roleName));
+
+            var role = await _repo.Table<IdentityRole>()
+                .SingleOrDefaultAsync(_ => _.NormalizedName == roleName, cancellationToken: cancellationToken);
+
+            if (role != null)
+            {
+                var userRole = await _repo.Table<IdentityUserRole<string>>().SingleOrDefaultAsync(_ => _.RoleId == role.Id, cancellationToken);
+                return userRole != null;
+            }
+
+            return false;
+        }
+
+        public async Task<IList<TUserEntity>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (string.IsNullOrWhiteSpace(roleName)) throw new ArgumentNullException(nameof(roleName));
+
+            var role = await _repo.Table<IdentityRole>()
+                            .SingleOrDefaultAsync(_ => _.NormalizedName == roleName, cancellationToken: cancellationToken);
+
+            if (role != null)
+            {
+                var userIds = await _repo.Table<IdentityUserRole<string>>()
+                    .Where(m => m.RoleId == role.Id)
+                    .Select(m => m.UserId)
+                    .ToListAsync(cancellationToken);
+
+                var users = await _repo.Table<TUserEntity>()
+                    .Where(m => userIds.Contains(m.Id))
+                    .ToListAsync(cancellationToken);
+
+                return users;
+            }
+
+            return new List<TUserEntity>();
+        }
+
+        public void Dispose()
+        { }
     }
 }
