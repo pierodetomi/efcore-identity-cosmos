@@ -36,9 +36,26 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
             return IdentityResult.Success;
         }
 
-        public Task<IdentityResult> DeleteAsync(TRoleEntity role, CancellationToken cancellationToken)
+        public async Task<IdentityResult> DeleteAsync(TRoleEntity role, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            try
+            {
+                _repo.Delete(role);
+                await _repo.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+            }
+
+            return IdentityResult.Success;
         }
 
         public async Task<TRoleEntity> FindByIdAsync(string roleId, CancellationToken cancellationToken)
@@ -69,32 +86,90 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
 
         public Task<string> GetNormalizedRoleNameAsync(TRoleEntity role, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            return Task.FromResult(role.NormalizedName);
         }
 
         public Task<string> GetRoleIdAsync(TRoleEntity role, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            return Task.FromResult(role.Id);
         }
 
         public Task<string> GetRoleNameAsync(TRoleEntity role, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            return Task.FromResult(role.Name);
         }
 
         public Task SetNormalizedRoleNameAsync(TRoleEntity role, string normalizedName, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            role.NormalizedName = normalizedName;
+
+            return Task.CompletedTask;
         }
 
         public Task SetRoleNameAsync(TRoleEntity role, string roleName, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            role.Name = roleName;
+
+            return Task.CompletedTask;
         }
 
-        public Task<IdentityResult> UpdateAsync(TRoleEntity role, CancellationToken cancellationToken)
+        public async Task<IdentityResult> UpdateAsync(TRoleEntity role, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            role.ConcurrencyStamp = Guid.NewGuid().ToString();
+
+            try
+            {
+                _repo.Update(role);
+                await _repo.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+            }
+
+            return IdentityResult.Success;
         }
 
         public void Dispose()
