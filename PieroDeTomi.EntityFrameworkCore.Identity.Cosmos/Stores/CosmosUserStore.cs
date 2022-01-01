@@ -382,10 +382,16 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
 
-            IList<string> res = await _repo
+            var roleIds = await _repo
                 .Table<IdentityUserRole<string>>()
                 .Where(m => m.UserId == user.Id)
                 .Select(m => m.RoleId)
+                .ToListAsync(cancellationToken);
+
+            IList<string> res = await _repo
+                .Table<IdentityRole>()
+                .Where(m => roleIds.Contains(m.Id))
+                .Select(m => m.Name)
                 .ToListAsync(cancellationToken);
 
             return res;
