@@ -409,7 +409,9 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
 
             if (role != null)
             {
-                var userRole = await _repo.Table<IdentityUserRole<string>>().SingleOrDefaultAsync(_ => _.RoleId == role.Id, cancellationToken);
+                var userRole = await _repo.Table<IdentityUserRole<string>>()
+                    .SingleOrDefaultAsync(_ => _.RoleId == role.Id && _.UserId == user.Id, cancellationToken);
+
                 return userRole != null;
             }
 
