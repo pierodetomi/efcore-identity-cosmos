@@ -25,6 +25,7 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
 
             try
             {
+                role.NormalizedName = role.Name.ToLower();
                 _repo.Add(role);
                 await _repo.SaveChangesAsync();
             }
