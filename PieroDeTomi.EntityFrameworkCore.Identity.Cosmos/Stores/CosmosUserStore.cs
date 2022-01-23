@@ -336,7 +336,7 @@ namespace PieroDeTomi.EntityFrameworkCore.Identity.Cosmos.Stores
             if (string.IsNullOrWhiteSpace(roleName)) throw new ArgumentNullException(nameof(roleName));
 
             var role = await _repo.Table<IdentityRole>()
-                .SingleOrDefaultAsync(_ => _.NormalizedName == roleName, cancellationToken: cancellationToken);
+                .SingleOrDefaultAsync(_ => _.NormalizedName == roleName.ToLower(), cancellationToken: cancellationToken);
 
             if (role == null) throw new InvalidOperationException("Role not found.");
 
