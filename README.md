@@ -31,6 +31,7 @@ Since **migrations are NOT supported when using EF Core on Cosmos DB**, you’ll
 | Identity_PersistedGrant | /Key |
 | Identity_Tokens | /UserId |
 | Identity_UserRoles | /UserId |
+| Identity_Roles | /Id |
 
 ## DbContext
 You have to create a DbContext that implements the provided `CosmosIdentityDbContext` type.
